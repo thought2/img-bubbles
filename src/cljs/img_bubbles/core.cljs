@@ -13,7 +13,7 @@
 (defonce app-state (r/atom nil))
 
 (def style
-  (css
+  (css 
    [:.max {:width "100%"
            :height "100%"}]))
 
