@@ -17,8 +17,10 @@
   (reset! state (init-state)))
 
 (defn load []
-  (-> (net/ajax {:params {:url "http://taz.de"}})
-      (p/then #(swap! state assoc :result %))))
+  (-> (net/ajax {:uri "/imgs"
+                 :params {:url "http://taz.de"}})
+      (p/then #(swap! state assoc :result %))
+      (p/catch #(.log js/console "error" %))))
 
 (defn Log [state]
   [:div {:style {:color :white
@@ -77,6 +79,7 @@
   (let [style (css)]
     (load)
     (fn []
+      
       [:div.max {:style {:overflow :hidden}}
        [Style style]
        #_[Log state]

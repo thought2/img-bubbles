@@ -1,6 +1,10 @@
 (def +version+ "0.1.0-SNAPSHOT")
 (def +name+ 'img-bubbles)
 
+(defn mk-ns-symbol [xs & [x]]
+  (symbol (str (clojure.string/join "." xs)
+               (when x (str "/" x)))))
+
 (def both       '[[com.cemerick/url                     "0.1.1"]
                   [ring-transit                         "0.1.6"] 
                   [org.clojure/test.check               "0.9.0"]
@@ -12,13 +16,14 @@
                   [adzerk/boot-reload                   "0.4.12"                :scope "test"]
                   [com.cemerick/pomegranate             "0.3.1"                 :scope "test"]
                   [edw/pomjars                          "0.1.0"                 :scope "test"] 
-                  [thought2/boot-misc                   "0.3.0-SNAPSHOT"        :scope "test"]
+                  ;;[thought2/boot-misc                   "0.3.0-SNAPSHOT"        :scope "test"]
                   [pandeiro/boot-http                   "0.7.3"                 :scope "test"]])
 
-(def back       '[[slingshot                     "0.12.2"]
+(def back       '[[thought2/boot2nix             "0.1.0-SNAPSHOT"]
+                  [slingshot                     "0.12.2"]
                   [com.cognitect/transit-clj     "0.8.297"]
                   [ring-transit                  "0.1.6"] 
-                  [thought2/misc                 "0.1.0-SNAPSHOT"]
+                  #_[thought2/misc                 "0.1.0-SNAPSHOT"]
                   [fivetonine/collage            "0.2.1"]
                   [org.clojure/java.jdbc         "0.4.2"]
                   [mysql/mysql-connector-java    "6.0.4"]
@@ -31,7 +36,7 @@
 
 (def front      '[[markdown-clj                  "0.9.89"]
                   [enfocus                       "2.1.1"]
-                  [thought2/web-misc             "0.1.0"]
+                  #_[thought2/web-misc             "0.1.0"]
                   [cljs-ajax                     "0.5.8"]
                   [garden                        "1.3.2"]
                   [funcool/promesa                      "1.5.0"]
@@ -52,10 +57,10 @@
  :resource-paths #{"resources"}
  :dependencies (concat both back front))
 
-(require         '[pomjars.core                  :as pj]
-                 '[thought2.boot-misc            :refer [boot-misc! push-webdir push-uber mk-ns-symbol]] 
+(require         '[thought2.boot2nix             :refer [boot2nix]]
+                 '[pomjars.core                  :as pj]
+                 ;;                 '[thought2.boot-misc            :refer [boot-misc! push-webdir push-uber mk-ns-symbol]] 
                  '[pandeiro.boot-http            :refer [serve]]
-                 '[samestep.boot-refresh         :refer [refresh]] 
                  '[clojure.repl                  :refer [doc]]
                  '[clojure.pprint                :refer [pprint]])
 
@@ -70,7 +75,7 @@
                  '[adzerk.boot-cljs-repl         :refer [cljs-repl start-repl]] 
                  '[org.martinklepsch.boot-garden :refer [garden]] )
 
-(boot-misc! +name+ +version+)
+;;(boot-misc! +name+ +version+)
 
 (let [main-ns (mk-ns-symbol [+name+ 'start])]
   (task-options!
@@ -78,7 +83,9 @@
            :version     +version+
            :description ""
            :license     {"The MIT License (MIT)"
-                         "http://opensource.org/licenses/mit-license.php"}} 
+                         "http://opensource.org/licenses/mit-license.php"}}
+   garden {:styles-var  (mk-ns-symbol [+name+ 'styles] 'base)
+           :output-to   "css/styles.css"}
    repl   {:eval '(set! *print-length* 20)}
    jar    {:main main-ns}
    aot    {:namespace #{main-ns}}))
@@ -100,6 +107,8 @@
 
 (deftask build []
   (comp
+   (cljs :optimizations :advanced)
+   (garden)
    (aot)
    (pom)
    (uber)

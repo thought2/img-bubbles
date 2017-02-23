@@ -5,8 +5,7 @@
             [promesa.core :as p]))
 
 (def defaults
-  {:uri "/imgs"
-   :method :post
+  {:method :post
    :format (transit-request-format)
    :response-format (transit-response-format)})
 
